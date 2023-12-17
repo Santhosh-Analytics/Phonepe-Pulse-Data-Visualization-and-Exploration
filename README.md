@@ -48,7 +48,7 @@ Before you begin, ensure you have met the following requirements:
 - **Streamlit and Plotly:** Install using pip:
   ```bash
   pip install streamlit plotly
-- **Necessary Python packages:** specified in [`requirements.txt`]()
+- **Necessary Python packages:** specified in [`requirements.txt`](https://github.com/Santhosh-Analytics/Phonepe-Pulse-Data-Visualization-and-Exploration/blob/main/requirements.txt)
 
 
 ## Features
