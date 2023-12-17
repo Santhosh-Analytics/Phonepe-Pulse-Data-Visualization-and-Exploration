@@ -7,12 +7,8 @@
 ## Table of Contents
 1. [Overview](#overview)
 2. [Problem Statement](#problem-statement)
-3. [Learning Outcomes](#learning-outcomes)
-4. [Project Evaluation Metrics](#project-evaluation-metrics)
-    - [Code Quality](#code-quality)
-    - [GitHub Repository](#github-repository)
-    - [Coding Standards](#coding-standards)
-    - [Documentation](#documentation)
+3. [Prerequisites](#prerequisites)
+4. [Features](#features)
 5. [Project Structure](#project-structure)
 6. [Getting Started](#getting-started)
 7. [Dependencies](#dependencies)
@@ -44,49 +40,30 @@ easily accessible and provide valuable insights and information about the data i
 Phonepe pulse Github repository.
 
 
-## Learning Outcomes
+## Prerequisites
 
-1. **Data Extraction and Processing:**
-   - Utilize GitHub cloning to extract data.
-   - Pre-process data using Python libraries, with a focus on Pandas.
+Before you begin, ensure you have met the following requirements:
 
-2. **Database Management:**
-   - Learn database management using MySQL.
-   - Efficiently store and retrieve data for analysis and visualization.
+- **Python:** Version 3.11.0 or higher. [Download Python](https://www.python.org/downloads/)
+- **IDE:** Jupyter Notebook or your referred IDE's / Code editor.
+- **MySQL Database:** Ensure you have MySQL installed. [MySQL Installation Guide](https://dev.mysql.com/doc/mysql-installation-excerpt/8.0/en/)
+- **GitHub:** Version control tool. [Download Git](https://git-scm.com/downloads/)
+- **Streamlit and Plotly:** Install using pip:
+  ```bash
+  pip install streamlit plotly
+- **Necessary Python packages:** specified in [`requirements.txt`]()
 
-3. **Visualization and Dashboard Creation:**
-   - Use Streamlit and Plotly libraries to create interactive dashboards.
 
-4. **Geo Visualization:**
-   - Implement Plotly's geo map functions to display data on a map.
+## Features
 
-5. **Dynamic Updating:**
-   - Create a dashboard that dynamically updates based on the latest data.
+- **Home Page:** This page provides an overview of the PhonePe Pulse and the Streamlit app.
+- **Datasets Page:** On this page, you'll find an overview and summary of PhonePe Pulse data, and you have the option to download the data.
+- **Overview Page:** This page displays the comprehensive highlights of PhonePe Pulse Data.
+- **Transactions Page:** 
+- **User Page:** This page allows users to explore the user data using various filters such as state, year and quarter treemap, choropleth and density mapbox
+- **Trend Page:** This page shows the trend of transaction count and amount over time, and allows users to compare different time periods using line and bar plots
+- **Comparison Page:** This page allows users to compare different regions, transaction types using facet grids, grouped bar and pie chart.
 
-6. **Project Development and Deployment:**
-   - Develop a comprehensive and user-friendly solution.
-   - Learn testing and deployment processes to ensure security and efficiency.
-
-By completing this project, you'll gain practical experience in data extraction, processing, and visualization, along with skills in database management and dashboard creation.
-
-## Project Evaluation Metrics
-
-### Code Quality
-- Write code in a modular fashion (functional blocks).
-- Maintainability: Code should be maintainable as the codebase grows.
-- Portability: Ensure the code works consistently across different environments.
-
-### GitHub Repository
-- Maintain your code on [GitHub](https://github.com/) (Mandatory).
-- Keep your GitHub repository public for code review (Mandatory).
-- Include a proper README file for project development (Mandatory).
-
-### Coding Standards
-- Follow the [PEP 8](https://www.python.org/dev/peps/pep-0008/) coding standards.
-
-### Documentation
-- Maintain a detailed README file on GitHub with basic workflow and project execution.
-- Include a demo/presentation video on [LinkedIn](https://www.linkedin.com/) (Mandatory).
 
 ## Project Structure
 
