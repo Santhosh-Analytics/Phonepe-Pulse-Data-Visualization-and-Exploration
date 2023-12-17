@@ -9,12 +9,9 @@
 2. [Problem Statement](#problem-statement)
 3. [Prerequisites](#prerequisites)
 4. [Features](#features)
-5. [Project Structure](#project-structure)
-6. [Getting Started](#getting-started)
-7. [Dependencies](#dependencies)
-8. [Execution Workflow](#execution-workflow)
 9. [Demo/Presentation Video](#demopresentation-video)
-10. [Contact](#contact)
+10. [Conclusion](#conclusion)
+11. [Contact](#contact)
 
 
 ## Overview
@@ -59,36 +56,23 @@ Before you begin, ensure you have met the following requirements:
 - **Home Page:** This page provides an overview of the PhonePe Pulse and the Streamlit app.
 - **Datasets Page:** On this page, you'll find an overview and summary of PhonePe Pulse data, and you have the option to download the data.
 - **Overview Page:** This page displays the comprehensive highlights of PhonePe Pulse Data.
-- **Transactions Page:** 
+- **Transactions Page:** This page displays the transaction data using various filters such as state, year & quarter in the form of transaction hotspots and breakdowns.
 - **User Page:** This page allows users to explore the user data using various filters such as state, year and quarter treemap, choropleth and density mapbox
 - **Trend Page:** This page shows the trend of transaction count and amount over time, and allows users to compare different time periods using line and bar plots
 - **Comparison Page:** This page allows users to compare different regions, transaction types using facet grids, grouped bar and pie chart.
 
 
-## Project Structure
-
-Describe the organization of your project files and directories. Mention any key scripts, configurations, or folders.
-
-## Getting Started
-
-Provide instructions on how to clone the repository, set up the environment, and execute the project.
-
-## Dependencies
-
-List all dependencies and versions used in your project.
-
-## Execution Workflow
-
-Explain the workflow of your project, from data extraction to dashboard deployment.
-
 ## Demo/Presentation Video
 
-Link to the mandatory demo/presentation video on LinkedIn.
+In progress...
+
+## Conclusion
+In conclusion, this project has provided a hands-on experience in the end-to-end process of data extraction, processing, and visualization. By addressing the problem statement, we successfully developed a user-friendly geo visualization dashboard that dynamically updates with the latest data. The project has not only enhanced technical skills but also demonstrated the ability to work with databases, adhere to coding standards, and deploy a comprehensive solution.
+
+This project serves as a valuable addition to a portfolio, showcasing practical skills in data science, database management, and dashboard development.
 
 ## Contact
 
-If you have any questions or feedback, feel free to reach out.
+If you have any questions or feedback, feel free to reach out to me at [my email](mailto:sansuganyas@outlook.com).
 
----
 
-**Note:** This README template provides a starting point. Customize it according to your project's specifics.
