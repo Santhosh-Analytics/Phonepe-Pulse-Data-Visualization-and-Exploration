@@ -1,3 +1,9 @@
+<div align="center">
+    <img alt="Static Badge" src="https://img.shields.io/badge/PhonePe_Pulse-Data_Explration-orange?style=for-the-badge&labelColor=yellow&logo=Python&logoColor=%233776AB">
+
+</div>
+
+
 # <div align="center"> Phonepe Pulse Data Visualization Project</div>
 <div align="center"> A User-Friendly Tool Using Streamlit and Plotly</div>
 
@@ -8,7 +14,8 @@
 1. [Overview](#overview)
 2. [Problem Statement](#problem-statement)
 3. [Prerequisites](#prerequisites)
-4. [Features](#features)
+4. [Testing the Application Locally](testing-the-application-locally)
+5. [Features](#features)
 9. [Demo/Presentation Video](#demopresentation-video)
 10. [Conclusion](#conclusion)
 11. [Contact](#contact)
@@ -61,7 +68,25 @@ Before you begin, ensure you have met the following requirements:
 - **Trend Page:** This page shows the trend of transaction count and amount over time, and allows users to compare different time periods using line and bar plots
 - **Comparison Page:** This page allows users to compare different regions, transaction types using facet grids, grouped bar and pie chart.
 
+## Testing the Application Locally:
+To clone and run this application, you'll need [![Git Badge](https://img.shields.io/badge/Git-orange?style=[lastic&logo=git&logoColor=orange&labelColor=yellow&label=Install)](https://git-scm.com/) installed on your computer. 
 
+1. Clone the repository:
+
+      ``` bash
+        git clone https://github.com/Santhosh-Analytics/Phonepe-Pulse-Data-Visualization-and-Exploration
+
+3. Navigate to the project directory:
+    ``` bash
+    cd Phonepe-Pulse-Data-Visualization-and-Exploration
+5. Install dependencies:
+      ``` bash
+    pip install -r requirements.txt
+      
+7. Run the application:
+     ``` bash
+    streamlit run Main_mod.py
+10. Ensure you use your SQL user credentials.
 ## Demo/Presentation Video
 
 In progress...
