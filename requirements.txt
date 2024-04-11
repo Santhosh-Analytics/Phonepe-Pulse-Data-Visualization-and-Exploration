@@ -4,8 +4,8 @@ matplotlib==3.7.3
 matplotlib-inline==0.1.6
 numpy==1.25.2
 openpyxl==3.1.2
-pandas==2.1.2
-pandas-profiling==3.2.0
+pandas
+pandas-profiling
 Pillow==9.5.0
 plotly==5.18.0
 plotly-express
@@ -33,4 +33,4 @@ streamlit-toggle-switch==1.0.2
 streamlit-vertical-slider==1.0.2
 xlrd==2.0.1
 XlsxWriter==3.1.9
-ydata-profiling==4.6.1
+ydata-profiling
