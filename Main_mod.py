@@ -14,8 +14,8 @@ from sqlalchemy import create_engine, text
 import _json
 
 
-image=Image.open("C:\\Users\\sansu\\OneDrive\\Pictures\\phonepe-logo-icon.jpg")
-you_image=Image.open("C:\\Users\\sansu\\OneDrive\\Pictures\\Youtube.png")
+image=Image.open("phonepe-logo-icon.jpg")
+you_image=Image.open("Youtube.png")
 
 # Streamlit page configuration
 
