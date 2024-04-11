@@ -1,4 +1,4 @@
-visions==0.7.1
+visions
 isodate==0.6.1
 isoduration==20.11.0
 matplotlib==3.7.3
