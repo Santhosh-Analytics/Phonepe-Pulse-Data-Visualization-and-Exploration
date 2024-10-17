@@ -104,7 +104,19 @@ st.markdown("""
     </style>
     """, unsafe_allow_html=True)
 
+load_dotenv()
 
+
+db_type = os.getenv('DB_TYPE')
+db_user = os.getenv('DB_USERNAME')
+db_password = os.getenv('DB_PASSWORD')
+db_host = os.getenv('DB_HOST', 'localhost')
+db_port = os.getenv('DB_PORT', '5432')
+db_name = 'phonepe_pulse'
+
+# st.write(os.getenv('DB_HOST'))
+# db_host=r'dpg-cs8d31u8ii6s73c8lrh0-a.singapore-postgres.render.com'
+         
 def get_db_connection():
     # Construct the database URL based on the type
     if db_type == 'mysql':
@@ -116,6 +128,10 @@ def get_db_connection():
     
     engine = create_engine(connection_string)
     return engine
+
+# st.write(get_db_connection())
+
+# st.write(f"Database host: {db_host}")
 
 with st.sidebar:
     st.markdown("<hr style='border: 2px solid #5f1f9c;'>", unsafe_allow_html=True)
@@ -136,22 +152,17 @@ st.markdown(""" <style> button[data-baseweb="tab"] > di v[data-testid="stMarkdow
 
 st.markdown("<h1 style='text-align: center; font-size: 38px; color: #5f1f9c ; font-weight: 700;font-family:PhonePeSans;'>Phonepe Pulse Data Visualization and Exploration </h1>", unsafe_allow_html=True)
 
-load_dotenv()
 
-db_type = os.getenv('DB_TYPE')
-db_user = os.getenv('DB_USERNAME')
-db_password = os.getenv('DB_PASSWORD')
-db_host = os.getenv('DB_HOST', 'localhost')
-db_port = os.getenv('DB_PORT', '3306')
-db_name = 'phonepe_pulse'
+
 
 @st.cache_data(ttl=None,persist="disk")
-def fetch_create_df(db_name,db_cond_substring):
+def fetch_create_df(db_cond_substring):
     
     # engine = create_engine(f'mysql+pymysql://{db_user}:{db_password}@{db_host}:{db_port}/{db_name}')
-    con=get_db_connection().connect()
+    engine = get_db_connection()
+    con=engine.connect()
     tbls={}
-    result =con.execute(text('show tables')).fetchall()
+    result =con.execute(text("SELECT table_name FROM information_schema.tables WHERE table_schema = 'public';")).fetchall()
     for i in result:
         tb=i[0]
         if any(sub in tb for sub in db_cond_substring):
@@ -165,7 +176,7 @@ def fetch_create_df(db_name,db_cond_substring):
         globals()[tb_name] = df 
     return tbls
 
-tbls = fetch_create_df("phonepe_pulse",["user","tran"])
+tbls = fetch_create_df(["user","tran"])
 
 @st.cache_data(ttl=None,persist="disk")
 def year_to_str(df):
@@ -219,6 +230,14 @@ if selected=="Datasets":
 
     st.markdown('<style>div.css-1jpvgo6 {font-size: 16px; font-weight: bolder;font-family:PhonePeSans; } </style>', unsafe_allow_html=True)
 
+    
+    try:
+        with get_db_connection().connect().connect() as connection:
+            st.write("Connection successful!")
+    except Exception as e:
+        st.write(f"Connection failed: {e}")
+
+    
     tab1, tab2 = st.tabs(['Report and Dataset', 'Download Dataset'])
 
     
@@ -416,12 +435,12 @@ if selected == 'Overview':
             st.markdown("<h3 style='text-align:center; font-size: 30px;color: #dd9933;font-family:PhonePeSans;'>Transaction Count and Amount by Region  </h3>", unsafe_allow_html=True)
             st.info("The Southern region holds a prominent position over all other regions in terms of Transaction Count.")
             agg_col1,agg_col2,agg_col3=st.columns([3,0.1,3])
-            qry_df = SQL_QRY('SELECT Region, SUM(Transaction_amount) as Amount, SUM(Transaction_count) as Count FROM agg_tran  GROUP BY Region')
+            qry_df = SQL_QRY('SELECT "Region", SUM("Transaction_amount") as Amount, SUM("Transaction_count") as Count FROM agg_tran GROUP BY "Region";')
 
             agg_col1.plotly_chart(
-            create_plotly_charts( qry_df,'Pie','Region','Count',
+            create_plotly_charts( qry_df,'Pie','Region','count',
             grid=False,hole=0.55,color_discrete_sequence=px.colors.sequential.Magma)
-            .update_traces(visible=True,textfont=dict(size=15, color='grey'),hoverinfo='label+percent+value',customdata=qry_df['Amount'],hovertemplate='<b>%{label}</b><br>Transaction Count: %{value:,.2f} Billion  </br> Transaction Amount: ₹ %{customdata:.2f} Billion', 
+            .update_traces(visible=True,textfont=dict(size=15, color='grey'),hoverinfo='label+percent+value',customdata=qry_df['amount'],hovertemplate='<b>%{label}</b><br>Transaction Count: %{value:,.2f} Billion  </br> Transaction Amount: ₹ %{customdata:.2f} Billion', 
                           hoverlabel=dict( font_size=14, font_family="Arial" ))
             .update_layout(width=400, height=400,legend=dict(font=dict(size=14,color='white')) ,  legend_title_text='Regions',title="Transaction Count", title_x=0.5,title_y=0.95),
             use_container_width=False)   
@@ -429,9 +448,9 @@ if selected == 'Overview':
             agg_col2.markdown("<div style='border-left: 3px solid #5f1f9c;font-family:PhonePeSans; height: 380px;'></div>", unsafe_allow_html=True)
 
             agg_col3.plotly_chart(
-                create_plotly_charts(qry_df,'Pie','Region','Amount',
+                create_plotly_charts(qry_df,'Pie','Region','amount',
                 grid=False,hole=0.55,color_discrete_sequence=px.colors.sequential.Magma)
-                .update_traces(visible=True,textfont=dict(size=15, color='#FFFFFF'),hoverinfo='label+percent+value',customdata=qry_df['Count'],hovertemplate='<b>%{label}</b><br>Transaction Amount: %{value:,.2f} Billion. </br> Transaction Count: ₹ %{customdata:.2f} Billion',  
+                .update_traces(visible=True,textfont=dict(size=15, color='#FFFFFF'),hoverinfo='label+percent+value',customdata=qry_df['count'],hovertemplate='<b>%{label}</b><br>Transaction Amount: %{value:,.2f} Billion. </br> Transaction Count: ₹ %{customdata:.2f} Billion',  
                               hoverlabel=dict( font_size=14, font_family="Arial" ))
                 .update_layout(width=400, height=400,legend=dict(font=dict(size=14,color='white')),legend_title_text='Regions',title="Transaction Amount",title_x=0.3,title_y=0.95),
                 use_container_width=False)
@@ -608,9 +627,20 @@ if selected == 'Overview':
         if ques==Ques_6:
             st.markdown("<hr style='border: 2px solid #5f1f9c;'>", unsafe_allow_html=True)
             agg_user = tbls['agg_user']
-            df,qtr_opts,state_opts,year_opts=filter_list(agg_user,suff=22)
+            agg_user.State = agg_user.State.astype('str')
+            agg_user.Brand = agg_user.Brand.astype('str')
+            agg_user.Region = agg_user.Region.astype('str')
 
+            
+
+            df,qtr_opts,state_opts,year_opts=filter_list(agg_user,suff=22)
+            # st.write(df.shape)  
+            # st.write(df.head(2)) 
+            # st.write(df.dtypes)
+            # st.write(df['Transaction_count'].describe())
+            
             df['count']=df['Transaction_count']/100000
+            # st.write(df['count'].describe())
         
             suffix4 = " quarters" if qtr_opts == 'All' else "st" if qtr_opts == 1 else "nd" if qtr_opts == 2 else "rd" if qtr_opts == 3 else "th"
             title4=f"Transaction Count in lakhs. and Percentage in {state_opts} for {qtr_opts}{suffix4} {'' if qtr_opts== 'All' else 'quarter'} of {year_opts}"
@@ -624,12 +654,16 @@ if selected == 'Overview':
             t_map.update_traces(marker=dict(cornerradius=5),hovertemplate='<b>%{label}</b><br>Transaction Count: %{customdata[0]:,.2f} lakhs<br>Percentage: %{customdata[1]:.2%}')
         
             st.plotly_chart(t_map.update_traces(hoverlabel=dict(  font_size=14, font_family="Arial" )),use_container_width=True)
-        
+
+            # st.write(df.columns)
             expander3 = st.expander(label = 'Transaction Count  Percentage by Brand, Detailed view')
             expander3.write(df.loc[:, ['State', 'Year','Quarter', 'Brand','Transaction_count','Percentage']].reset_index(drop=True))
 
         if ques==Ques_7:
             map_user=tbls['map_user']
+            # sss=map_user.info()
+            # for i,j in tbls.items():
+            #     st.write(map_user)
             st.markdown("<hr style='border: 2px solid #5f1f9c;'>", unsafe_allow_html=True)
 
 
@@ -689,6 +723,7 @@ if selected == 'Overview':
                 st.plotly_chart(reg_user_plot, use_container_width=True)
                 expanded=False
 
+            # st.write(df.info())
             st.expander1 = st.expander(label='App opens Hotspots Detailed view',expanded=expanded)
             st.expander1.write(df.loc[:, ['State', 'District', 'Year', 'App_opens','Registered_users']].reset_index(drop=True))
 
@@ -796,50 +831,52 @@ if selected == 'Overview':
     with SQL:
         if ques==Ques_1:
 
-            qry_df2=SQL_QRY('SELECT Region, SUM(Transaction_count) as Transactions, SUM(Transaction_amount) AS Amount FROM agg_tran GROUP BY Region;')
+            qry_df2=SQL_QRY('SELECT "Region", SUM("Transaction_count") as Transactions, SUM("Transaction_amount") AS Amount FROM agg_tran GROUP BY "Region";')
 
             # qry_df2['Tran in Cr.']=qry_df2['Transactions'].astype(float)
-            qry_df2['Transactions']=round(qry_df2['Transactions'].astype(float)/1e10,2)
-            qry_df2 = qry_df2.sort_values(by='Transactions',ascending=False)
+            qry_df2['transactions']=round(qry_df2['transactions'].astype(float)/1e10,2)
+            qry_df2 = qry_df2.sort_values(by='transactions',ascending=False)
 
         
-            qry_df2['Amount']=round(qry_df2['Amount']/1e10,2)
-
+            qry_df2['amount']=round(qry_df2['amount']/1e10,2)
+            
             # agg_trans_data1=tbls['agg_tran'].groupby('Year')['Transaction_count'].sum().reset_index()
             # agg_trans_data1['Transaction_count']=round(agg_trans_data1['Transaction_count'] / 10000000,2)
 
             st.markdown("<h3 style='text-align:center; font-size: 30px;color: #dd9933;font-family:PhonePeSans;'>Transaction Count and Amount by Region  </h3>", unsafe_allow_html=True)
             st.info("The Southern region holds a prominent position over all other regions in terms of Transaction Count.")
             agg_col1,agg_col2,agg_col3=st.columns([3,0.1,3])
-            qry_df = SQL_QRY('SELECT Region, SUM(Transaction_amount) as Amount, SUM(Transaction_count) as Count FROM agg_tran  GROUP BY Region')
+            
+            qry_df = SQL_QRY('SELECT "Region", SUM("Transaction_amount") as Amount, SUM("Transaction_count") as Count FROM agg_tran  GROUP BY "Region"')
 
             agg_col1.plotly_chart(
-            create_plotly_charts( qry_df2,'Pie','Region','Transactions',
+            create_plotly_charts( qry_df2,'Pie','Region','transactions',
             grid=False,hole=0.55,color_discrete_sequence=px.colors.sequential.Magma)
-            .update_traces(visible=True,textfont=dict(size=15, color='#FFFFFF'),hoverinfo='label+percent+value',customdata=qry_df2['Amount'],hovertemplate='<b>%{label}</b><br>Transaction Count: %{value:,.2f} Billion  </br> Transaction Amount: ₹ %{customdata:.2f} Billion',  )
+            .update_traces(visible=True,textfont=dict(size=15, color='#FFFFFF'),hoverinfo='label+percent+value',customdata=qry_df2['amount'],hovertemplate='<b>%{label}</b><br>Transaction Count: %{value:,.2f} Billion  </br> Transaction Amount: ₹ %{customdata:.2f} Billion',  )
             .update_layout(width=400, height=400,   legend_font=dict(size=13),legend_title_text='Regions',title="Transaction Count", title_x=0.5,title_y=0.95),
             use_container_width=False)   
         
             agg_col2.markdown("<div style='border-left: 3px solid #5f1f9c;font-family:PhonePeSans; height: 380px;'></div>", unsafe_allow_html=True)
 
             agg_col3.plotly_chart(
-                create_plotly_charts(qry_df2,'Pie','Region','Amount',
+                create_plotly_charts(qry_df2,'Pie','Region','amount',
                 grid=False,hole=0.55,color_discrete_sequence=px.colors.sequential.Magma)
-                .update_traces(visible=True,textfont=dict(size=15, color='#FFFFFF'),hoverinfo='label+percent+value',customdata=qry_df2['Transactions'],hovertemplate='<b>%{label}</b><br>Transaction Amount: %{value:,.2f} Billion. </br> Transaction Count: ₹ %{customdata:.2f} Billion',  )
-                .update_layout(width=400, height=400,legend_font=dict(size=13),legend_title_text='Regions',title="Transaction Amount",title_x=0.3,title_y=0.95),
+                .update_traces(visible=True,textfont=dict(size=15, color='#FFFFFF'),hoverinfo='label+percent+value',customdata=qry_df2['transactions'],hovertemplate='<b>%{label}</b><br>transaction Amount: %{value:,.2f} Billion. </br> transaction Count: ₹ %{customdata:.2f} Billion',  )
+                .update_layout(width=400, height=400,legend_font=dict(size=13),legend_title_text='Regions',title="transaction Amount",title_x=0.3,title_y=0.95),
                 use_container_width=False)
+            
             st.write(qry_df2.to_html(index=False), unsafe_allow_html=True)
 
-
         if ques==Ques_2:
-            qry_df3=SQL_QRY('SELECT  Transaction_type, SUM(Transaction_count) as Transactions  FROM agg_tran GROUP BY Transaction_type;')            
-            qry_df4=SQL_QRY('SELECT Year, Transaction_type, SUM(Transaction_amount) AS Amount FROM agg_tran GROUP BY Year,Transaction_type;')            
+                        
+            qry_df3=SQL_QRY('SELECT  "Transaction_type", SUM("Transaction_count") as Transactions  FROM agg_tran GROUP BY "Transaction_type";')            
+            qry_df4=SQL_QRY('SELECT "Year", "Transaction_type", SUM("Transaction_amount") AS Amount FROM agg_tran GROUP BY "Year","Transaction_type";')            
 
             st.markdown("<hr style='border: 2px solid #5f1f9c;'>", unsafe_allow_html=True)
             type_col1, type_col2, type_col3=st.columns([2.5,0.01,3])
         
-            qry_df3['Trans_Cr.']=round(qry_df3['Transactions'] .astype(float)/ 10000000,2)
-            qry_df4['Amt_Trillions']=round(qry_df4['Amount']/ 1000000000000,2)
+            qry_df3['Trans_Cr.']=round(qry_df3['transactions'] .astype(float)/ 10000000,2)
+            qry_df4['Amt_Trillions']=round(qry_df4['amount']/ 1000000000000,2)
 
             type_col1.markdown("<h3 style='text-align:center; font-size: 30px;color: #dd9933;font-family:PhonePeSans;'>Transaction Count in Cr. by  type  </h3>", unsafe_allow_html=True)
             type_col1.info("The Merchant  payment holds a prominent position over all transaction type.")
@@ -849,7 +886,7 @@ if selected == 'Overview':
 
             type_col1.plotly_chart(
                 create_plotly_charts(qry_df3, 'Bar', 'Transaction_type', 'Trans_Cr.',
-                                    grid=False,color='Transactions',text_auto=True,color_discrete_sequence=px.colors.sequential.Magma)
+                                    grid=False,color='transactions',text_auto=True,color_discrete_sequence=px.colors.sequential.Magma)
                                     .update_traces( visible=True, showlegend=False,textfont=dict(size=15),textfont_color='#FFFFFF',textposition='outside',texttemplate="%{y:,.2f} Cr",)
                                     .update_yaxes(title='Count in Crores',title_font=dict(size=18),tickfont=dict(size=15),ticksuffix=' Cr',tickprefix='')
                                     .update_xaxes(title='Transaction Type',title_font=dict(size=18),tickfont=dict(size=15)),
@@ -877,29 +914,30 @@ if selected == 'Overview':
 
 
         if ques==Ques_3:
+            
+            
             user_col1,user_col2,user_col3=st.columns([3,0.001,3.1])
             
-            qry_df=SQL_QRY('SELECT brand, SUM(Transaction_count) AS Transactions FROM agg_user GROUP BY brand;')
-
-            qry_df['Tran in Cr.']=qry_df['Transactions'].astype(float)
+            qry_df=SQL_QRY('SELECT "Brand", SUM("Transaction_count") AS Transactions FROM agg_user GROUP BY "Brand";')            
+            qry_df['Tran in Cr.']=qry_df['transactions'].astype(float)
             qry_df['Tran in Cr.']=round(qry_df['Tran in Cr.']/1000000,2)
-            qry_df = qry_df.sort_values(by='Transactions',ascending=False)
+            qry_df = qry_df.sort_values(by='transactions',ascending=False)
             
             user_col1.markdown("<h3 style='text-align:center; font-size: 30px;color: #dd9933;font-family:PhonePeSans;'>Transaction Count in Cr. by  Brand  </h3>", unsafe_allow_html=True)
             user_col1.info("Xiaomi phones dominate, suggesting PhonePe's popularity extends to economically diverse users.")
             user_col1.plotly_chart(
-                create_plotly_charts(qry_df, 'Bar', 'Tran in Cr.', 'brand', grid=False, orientation='h',hover_name='brand',
-                                    color='Transactions', color_continuous_scale='Magma',text='Tran in Cr.',)
+                create_plotly_charts(qry_df, 'Bar', 'Tran in Cr.', 'Brand', grid=False, orientation='h',hover_name='Brand',
+                                    color='transactions', color_continuous_scale='Magma',text='Tran in Cr.',)
                                     .update_layout( xaxis={'categoryorder': 'total descending'},yaxis={'categoryorder': 'total ascending'})
                                     .update_traces( visible=True, showlegend=False,textfont=dict(size=12),textfont_color='#FFFFFF',textposition='outside',texttemplate="%{x:,.2f} Cr")
                                     .update_xaxes(title='Count in Crores',title_font=dict(size=18),tickfont=dict(size=14),tickformat=",.2f ",ticksuffix=' Cr',tickprefix=' ')
                                     .update_yaxes(title_font=dict(size=18),tickfont=dict(size=15))
                                     , use_container_width=True)
             
-            qry_df1=SQL_QRY('SELECT Region, brand, SUM(Transaction_count) AS Transaction_count FROM agg_user GROUP BY Region , brand;')
+            qry_df1=SQL_QRY('SELECT "Region", "Brand", SUM("Transaction_count") AS Transaction_count FROM agg_user GROUP BY "Region" , "Brand";')
             
 
-            qry_df1['Count in Cr.']=round(qry_df1['Transaction_count'].astype(float)/10000000,2)
+            qry_df1['Count in Cr.']=round(qry_df1['transaction_count'].astype(float)/10000000,2)
             qry_df1 = qry_df1.sort_values(by='Count in Cr.',ascending=False)
 
             user_col2.markdown("<div style='border-left: 3px solid #5f1f9c;font-family:PhonePeSans; height: 550px;'></div>", unsafe_allow_html=True)
@@ -907,9 +945,9 @@ if selected == 'Overview':
             user_col3.markdown("<h3 style='text-align:center; font-size: 30px;color: #dd9933;font-family:PhonePeSans;'>Transaction  Count in Cr. by Brand, Year  </h3>", unsafe_allow_html=True)
             user_col3.info("Southern region dominates irrespective of devices")
             user_col3.plotly_chart(
-                create_plotly_charts(qry_df1, 'Bar', 'Count in Cr.', 'brand', grid=False, orientation='h',
+                create_plotly_charts(qry_df1, 'Bar', 'Count in Cr.', 'Brand', grid=False, orientation='h',
                                     color="Count in Cr.",hover_name='Region',
-                                    hover_data = {'brand':True,'Count in Cr.':True},
+                                    hover_data = {'Brand':True,'Count in Cr.':True},
                                     color_continuous_scale='Magma').update_layout(
                 xaxis={'categoryorder': 'total descending'},yaxis={'categoryorder': 'total ascending'})
                 .update_traces( visible=True, showlegend=False,textfont=dict(size=12),textfont_color='#FFFFFF',textposition='outside',texttemplate="%{x:,.2f} Cr")
@@ -924,15 +962,15 @@ if selected == 'Overview':
 
 
         if ques==Ques_4:
-            qry_df5=SQL_QRY('SELECT Year, Quarter, State, SUM(Transaction_count) AS Transactions,SUM(Transaction_amount) AS Amount FROM top_tran_dist GROUP BY Year, Quarter, State;')
+            qry_df5=SQL_QRY('SELECT "Year", "Quarter", "State", SUM("Transaction_count") AS Transactions,SUM("Transaction_amount") AS Amount FROM top_tran_dist GROUP BY "Year", "Quarter", "State";')
 
             df,qtr_opts,state_opts,year_opts=filter_list(qry_df5,suff=88)
             df['Year']=df['Year'].astype(int)
             suffix1 = " quarters" if qtr_opts == 'All' else "'st quarter" if qtr_opts == 1 else "'nd quarter" if qtr_opts == 2 else "'rd quarter" if qtr_opts == 3 else "'th quarter"
             title3=f'Top 10 districts across {state_opts} state by Transactions count in {year_opts}, {qtr_opts}{suffix1}'
 
-            df['Amt_Cr']=round(df['Amount']/10000000,2)
-            dff= df.groupby("State")["Amount"].sum().nlargest(10).index.tolist()
+            df['Amt_Cr']=round(df['amount']/10000000,2)
+            dff= df.groupby("State")["amount"].sum().nlargest(10).index.tolist()
             df = df[df["State"].isin(dff)]
             st.plotly_chart(
                     create_plotly_charts(
@@ -953,18 +991,18 @@ if selected == 'Overview':
                     use_container_width=True
                 )
             expander4  = st.expander(label = 'Top Transactions by State, Detailed view')
-            expander4.write(df.loc[:, ['State', 'Year','Quarter','Amount']].reset_index(drop=True))
+            expander4.write(df.loc[:, ['State', 'Year','Quarter','amount']].reset_index(drop=True))
 
         if ques==Ques_5:
-            qry_df6=SQL_QRY('SELECT Year, Quarter, State, District, SUM(Transaction_count) AS Transactions,SUM(Transaction_amount) AS Amount FROM top_tran_dist GROUP BY Year, Quarter, State,District;')
+            qry_df6=SQL_QRY('SELECT "Year", "Quarter", "State", "District", SUM("Transaction_count") AS Transactions,SUM("Transaction_amount") AS Amount FROM top_tran_dist GROUP BY "Year", "Quarter", "State","District";')
 
             df,qtr_opts,state_opts,year_opts=filter_list(qry_df6,suff=98)
             df['Year']=df['Year'].astype(int)
             suffix1 = " quarters" if qtr_opts == 'All' else "'st quarter" if qtr_opts == 1 else "'nd quarter" if qtr_opts == 2 else "'rd quarter" if qtr_opts == 3 else "'th quarter"
             title3=f'Top 10 districts across {state_opts} state by Transactions count in {year_opts}, {qtr_opts}{suffix1}'
 
-            df['Amt_Cr']=round(df['Amount']/10000000,2)
-            dff= df.groupby("District")["Amount"].sum().nlargest(10).index.tolist()
+            df['Amt_Cr']=round(df['amount']/10000000,2)
+            dff= df.groupby("District")["amount"].sum().nlargest(10).index.tolist()
             df = df[df["District"].isin(dff)]
             st.plotly_chart(
                     create_plotly_charts(
@@ -985,34 +1023,34 @@ if selected == 'Overview':
                     use_container_width=True
                 )
             expander44  = st.expander(label = 'Top Transactions by State, Detailed view')
-            expander44.write(df.loc[:, ['State', 'District','Year','Quarter','Amount']].reset_index(drop=True))
+            expander44.write(df.loc[:, ['State', 'District','Year','Quarter','amount']].reset_index(drop=True))
 
         if ques==Ques_6:
-            qry_df7=SQL_QRY('SELECT Year, Quarter, Brand, State, SUM(Transaction_count) AS Transaction_count,sum(Percentage) as Percentage FROM agg_user GROUP BY Year, Quarter, Brand, State;')
+            qry_df7=SQL_QRY('SELECT "Year", "Quarter", "Brand", "State", SUM("Transaction_count") AS Transaction_count,sum("Percentage") as Percentage FROM agg_user GROUP BY "Year", "Quarter", "Brand", "State";')
 
             st.markdown("<hr style='border: 2px solid #5f1f9c;'>", unsafe_allow_html=True)
             df,qtr_opts,state_opts,year_opts=filter_list(qry_df7,suff=89)
 
-            df['count']=df['Transaction_count']/100000
+            df['count']=df['transaction_count']/100000
         
             suffix4 = " quarters" if qtr_opts == 'All' else "st" if qtr_opts == 1 else "nd" if qtr_opts == 2 else "rd" if qtr_opts == 3 else "th"
             title4=f"Transaction Count in lakhs. and Percentage in {state_opts} for {qtr_opts}{suffix4} {'' if qtr_opts== 'All' else 'quarter'} of {year_opts}"
 
         
             t_map=create_plotly_charts(
-            df,'Treemap',['Brand'],'count',color='Percentage',
-            hover_data={'count':True,'Percentage': ':.2%','State':False,'Year':True,'Quarter':False},color_continuous_scale='phase',)
+            df,'Treemap',['Brand'],'count',color='percentage',
+            hover_data={'count':True,'percentage': ':.2%','State':False,'Year':True,'Quarter':False},color_continuous_scale='phase',)
         
             t_map.update_layout(height=700,title = {"text": title4 ,'x': 0.45, 'xanchor': 'center','y': 0.89,'yanchor': 'bottom'})
-            t_map.update_traces(marker=dict(cornerradius=5),hovertemplate='<b>%{label}</b><br>Transaction Count: %{customdata[0]:,.2f} lakhs<br>Percentage: %{customdata[1]:.2%}')
+            t_map.update_traces(marker=dict(cornerradius=5),hovertemplate='<b>%{label}</b><br>transaction Count: %{customdata[0]:,.2f} lakhs<br>percentage: %{customdata[1]:.2%}')
         
             st.plotly_chart(t_map,use_container_width=True)
         
             expander33 = st.expander(label = 'Transaction Count  Percentage by Brand, Detailed view')
-            expander33.write(df.loc[:, ['State', 'Year','Quarter', 'Brand','Transaction_count','Percentage']].reset_index(drop=True))
+            expander33.write(df.loc[:, ['State', 'Year','Quarter', 'Brand','transaction_count','percentage']].reset_index(drop=True))
 
         if ques==Ques_7:
-            qry_df8=SQL_QRY('SELECT Year, Quarter, Region,State, District, SUM(Registered_users) AS Registered_users,SUM(App_opens) AS App_opens,Latitude,Longitude FROM map_user GROUP BY Year, Quarter, Region,State,District,Latitude,Longitude;')
+            qry_df8=SQL_QRY('SELECT "Year", "Quarter", "Region","State", "District", SUM("Registered_users") AS Registered_users,SUM("App_opens") AS App_opens,"Latitude","Longitude" FROM map_user GROUP BY "Year", "Quarter", "Region","State","District","Latitude","Longitude";')
 
             st.markdown("<hr style='border: 2px solid #5f1f9c;'>", unsafe_allow_html=True)        
         
@@ -1048,8 +1086,8 @@ if selected == 'Overview':
                 expanded=True
 
             else:
-                reg_user_plot = px.density_mapbox(df, lat='Latitude', lon='Longitude', z='App_opens', opacity=.3, color_continuous_scale='Viridis', 
-                                                    mapbox_style="carto-positron", radius=rad, hover_data={"Latitude": False, "Longitude": False, "District": True, "App_opens": True, 'Registered_users':True,'Region':True}, 
+                reg_user_plot = px.density_mapbox(df, lat='Latitude', lon='Longitude', z='app_opens', opacity=.3, color_continuous_scale='Viridis', 
+                                                    mapbox_style="carto-positron", radius=rad, hover_data={"Latitude": False, "Longitude": False, "District": True, "app_opens": True, 'registered_users':True,'Region':True}, 
                                                     hover_name='District', center=dict(lat=0, lon=180), zoom=zoom_level)
                 reg_user_plot   .update_layout( mapbox_zoom=zoom_level,  geo=dict(scope='asia', projection_type='equirectangular'), mapbox_center={"lat": center_lat, "lon": center_lon}, margin={"r": 0, "t": 0, "l": 0, "b": 0}, width=800, height=550)
                 reg_user_plot.update_traces(hovertemplate='<b>%{hovertext}</b><br>App Opens: %{z:,.2f} Lakhs<br>Registered Users: %{customdata[3]:,.2f} Lakhs<br>Region - %{customdata[4]}')
@@ -1072,39 +1110,39 @@ if selected == 'Overview':
                 expanded=False
 
             st.expander11= st.expander(label='App opens Hotspots Detailed view',expanded=expanded)
-            st.expander11.write(df.loc[:, ['State', 'District', 'Year', 'App_opens','Registered_users']].reset_index(drop=True))
+            st.expander11.write(df.loc[:, ['State', 'District', 'Year', 'app_opens','registered_users']].reset_index(drop=True))
 
             
         if ques==Ques_8:
             st.markdown("<hr style='border: 2px solid #5f1f9c;'>", unsafe_allow_html=True)
-            qry_df8=SQL_QRY('SELECT Year,Region, State,  SUM(Transaction_amount) AS Transaction_amount FROM agg_tran GROUP BY Year, Region, State;')
+            qry_df8=SQL_QRY('SELECT "Year","Region", "State",  SUM("Transaction_amount") AS Transaction_amount FROM agg_tran GROUP BY "Year", "Region", "State";')
 
 
             
             title ='Regionwise Transaction amount in Trillions'
 
-            qry_df8['Amt_Tri']=round(qry_df8['Transaction_amount']/1e12,2)
-            ab=create_plotly_charts(qry_df8,'Treemap',['Region','Year'],'Amt_Tri' ,color='Amt_Tri',color_continuous_scale='curl',hover_data={'Amt_Tri': True,'Transaction_amount':True,})
-            ab.update_layout( height=500,title = {"text": title ,'x': 0.45, 'xanchor': 'center','y': 0.847,'yanchor': 'bottom','font':dict(color='#ffffff')},).update_traces(marker=dict(cornerradius=11),root_color="red",hovertemplate='<b>%{label}</b><br>Transaction Amount: %{customdata[0]:,.2f} Trillions.')
+            qry_df8['Amt_Tri']=round(qry_df8['transaction_amount']/1e12,2)
+            ab=create_plotly_charts(qry_df8,'Treemap',['Region','Year'],'Amt_Tri' ,color='Amt_Tri',color_continuous_scale='curl',hover_data={'Amt_Tri': True,'transaction_amount':True,})
+            ab.update_layout( height=500,title = {"text": title ,'x': 0.45, 'xanchor': 'center','y': 0.847,'yanchor': 'bottom','font':dict(color='#ffffff')},).update_traces(marker=dict(cornerradius=11),root_color="red",hovertemplate='<b>%{label}</b><br>transaction Amount: %{customdata[0]:,.2f} Trillions.')
             ab.update_coloraxes(showscale=False) 
 
             st.plotly_chart(ab,use_container_width=True)
     
-            qry_df8 = qry_df8.groupby('Region').agg({'Transaction_amount': 'sum'}).reset_index()
+            qry_df8 = qry_df8.groupby('Region').agg({'transaction_amount': 'sum'}).reset_index()
             st.expander11= st.expander(label='Regionwise Transaction amount',expanded=False)
-            st.expander11.write(qry_df8.loc[:, ['Region', 'Transaction_amount']].reset_index(drop=True))
+            st.expander11.write(qry_df8.loc[:, ['Region', 'transaction_amount']].reset_index(drop=True))
 
             st.markdown("<hr style='border: 2px solid #5f1f9c;'>", unsafe_allow_html=True)
 
 
         if ques==Ques_9:
 
-            qry_df9=SQL_QRY('SELECT Year,Quarter,Region, Latitude,Longitude,State,  District, SUM(Registered_users) AS Registered_users,SUM(App_opens) AS App_opens FROM map_user GROUP BY Year,Quarter,Region, Latitude,Longitude,State,  District;')
+            qry_df9=SQL_QRY('SELECT "Year","Quarter","Region", "Latitude","Longitude","State",  "District", SUM("Registered_users") AS Registered_users,SUM("App_opens") AS App_opens FROM map_user GROUP BY "Year","Quarter","Region", "Latitude","Longitude","State",  "District";')
      
  
             df, qtr_opts, state_opts, year_opts = filter_list(qry_df9, suff=91)
             df['Year'] = df['Year'].astype(str).str.strip().str.replace(',', '').astype(int)
-            columns_to_convert = ['Registered_users', 'App_opens','Year']
+            columns_to_convert = ['registered_users', 'app_opens','Year']
             col_to_con = ['Latitude', 'Longitude',]
             df[columns_to_convert] = df[columns_to_convert].astype(int)
             df[col_to_con]=df[col_to_con].astype(float)
@@ -1121,8 +1159,8 @@ if selected == 'Overview':
             suffix5 = " quarters" if qtr_opts == 'All' else "'st quarter" if qtr_opts == 1 else "'nd quarter" if qtr_opts == 2 else "'rd quarter" if qtr_opts == 3 else "'th quarter"
             chart_title1 = f"""{state_opts} Registered user hotspots for {qtr_opts}{suffix5} of {year_opts}.<br>(Registered users in Lakhs & App Opens in Lakhs)"""
 
-            reg_user_plot = px.scatter_mapbox(df, lat='Latitude', lon='Longitude', size='Registered_users',
-                                            color='Registered_users', size_max=17, hover_data={"Longitude": False, "Latitude": False, "Registered_users": True, "App_opens": True, 'Region': False},
+            reg_user_plot = px.scatter_mapbox(df, lat='Latitude', lon='Longitude', size='registered_users',
+                                            color='registered_users', size_max=17, hover_data={"Longitude": False, "Latitude": False, "registered_users": True, "app_opens": True, 'Region': False},
                                             text='District', color_continuous_scale='Rainbow', )
 
             reg_user_plot.add_annotation(go.layout.Annotation(text=chart_title1,
@@ -1144,39 +1182,39 @@ if selected == 'Overview':
                                         geo=dict(scope='asia', projection_type='equirectangular'),
                                         margin={"r": 0, "t": 0, "l": 0, "b": 0}, width=400, height=500)
             reg_user_plot.update_traces(
-                hovertemplate='<b>%{text}</b><br>Registered users -  %{customdata[2]:,.2f} Lakhs<br>App_opens - %{customdata[3]:,.2f} Lakhs<br>Region - %{customdata[4]}'
+                hovertemplate='<b>%{text}</b><br>eegistered users -  %{customdata[2]:,.2f} Lakhs<br>app_opens - %{customdata[3]:,.2f} Lakhs<br>Region - %{customdata[4]}'
             )
 
             st.plotly_chart(reg_user_plot, use_container_width=True)
 
             expander22 = st.expander(label='Registered user Hotspots Detailed view')
-            expander22.write(df.loc[:, ['State', 'District', 'Year', 'Quarter', 'Registered_users', 'App_opens']].reset_index(drop=True))
+            expander22.write(df.loc[:, ['State', 'District', 'Year', 'Quarter', 'registered_users', 'app_opens']].reset_index(drop=True))
 
             st.markdown("<hr style='border: 2px solid #5f1f9c;'>", unsafe_allow_html=True)
 
         if ques==Ques_10:
-            qry_df10=SQL_QRY('SELECT Pincode, SUM(Transaction_amount) AS Transaction_amount FROM top_tran_pin GROUP BY Pincode;')
+            qry_df10=SQL_QRY('SELECT "Pincode", SUM("Transaction_amount") AS Transaction_amount FROM top_tran_pin GROUP BY "Pincode";')
 
             pin_tran=tbls['top_tran_pin']
-            qry_df10_fil=qry_df10.groupby('Pincode')['Transaction_amount'].sum().reset_index().sort_values('Transaction_amount',ascending=False).head(10)
+            qry_df10_fil=qry_df10.groupby('Pincode')['transaction_amount'].sum().reset_index().sort_values('transaction_amount',ascending=False).head(10)
             
-            qry_df10_fil['Transaction_amount']=qry_df10_fil['Transaction_amount']/10000000
+            qry_df10_fil['transaction_amount']=qry_df10_fil['transaction_amount']/10000000
             title17 = f"Top 10 pincode locations by Transaction volume. Value in Crores"
             st.plotly_chart(
             create_plotly_charts(
                 qry_df10_fil,
                 'Bar',
-                'Transaction_amount',
+                'transaction_amount',
                 'Pincode',
                 widthv=900,
                 heightv=500,
                 grid=False,
-                color='Transaction_amount',
+                color='transaction_amount',
                 color_continuous_scale='curl',
                 orientation='h',
             ).update_xaxes(title_text='', showgrid=False,tickformat=",.2f ",ticksuffix=' Cr',tickprefix='₹')
             .update_yaxes(title_text='', showgrid=False)
-                        .update_traces(texttemplate="₹%{x:,.2f} Cr",hovertemplate='<br>Transaction Amount: ₹%{x:,.2f} Cr')
+                        .update_traces(texttemplate="₹%{x:,.2f} Cr",hovertemplate='<br>transaction Amount: ₹%{x:,.2f} Cr')
 
             .update_layout(yaxis_type='category',xaxis={'categoryorder': 'total descending'},yaxis={'categoryorder': 'total ascending'},title={ 'text': title17, 'x': 0.4, 'xanchor': 'center', 'y': 0.94, 'yanchor': 'bottom' }
     ),
