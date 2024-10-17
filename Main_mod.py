@@ -105,6 +105,17 @@ st.markdown("""
     """, unsafe_allow_html=True)
 
 
+def get_db_connection():
+    # Construct the database URL based on the type
+    if db_type == 'mysql':
+        connection_string = f'mysql+pymysql://{db_user}:{db_password}@{db_host}:{db_port}/{db_name}'
+    elif db_type == 'postgresql':
+        connection_string = f'postgresql://{db_user}:{db_password}@{db_host}:{db_port}/{db_name}'
+    else:
+        raise ValueError("Unsupported database type")
+    
+    engine = create_engine(connection_string)
+    return engine
 
 with st.sidebar:
     st.markdown("<hr style='border: 2px solid #5f1f9c;'>", unsafe_allow_html=True)
@@ -127,6 +138,7 @@ st.markdown("<h1 style='text-align: center; font-size: 38px; color: #5f1f9c ; fo
 
 load_dotenv()
 
+db_type = os.getenv('DB_TYPE')
 db_user = os.getenv('DB_USERNAME')
 db_password = os.getenv('DB_PASSWORD')
 db_host = os.getenv('DB_HOST', 'localhost')
@@ -136,8 +148,8 @@ db_name = 'phonepe_pulse'
 @st.cache_data(ttl=None,persist="disk")
 def fetch_create_df(db_name,db_cond_substring):
     
-    engine = create_engine(f'mysql+pymysql://{db_user}:{db_password}@{db_host}:{db_port}/{db_name}')
-    con=engine.connect()
+    # engine = create_engine(f'mysql+pymysql://{db_user}:{db_password}@{db_host}:{db_port}/{db_name}')
+    con=get_db_connection().connect()
     tbls={}
     result =con.execute(text('show tables')).fetchall()
     for i in result:
@@ -162,8 +174,8 @@ def year_to_str(df):
 
 @st.cache_data(ttl=None,persist="disk")
 def SQL_QRY(query):
-    engine = create_engine(f'mysql+pymysql://{db_user}:{db_password}@{db_host}:{db_port}/{db_name}',pool_pre_ping=True)
-    con=engine.connect()
+    # engine = get_db_connection()
+    con=get_db_connection().connect()
     result =con.execute(text(query))
     data=result.fetchall()
     qry_df =pd.DataFrame(data)

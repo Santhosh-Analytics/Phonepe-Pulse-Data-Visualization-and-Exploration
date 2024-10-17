@@ -1,8 +1,8 @@
-altair @ file:///home/conda/feedstock_root/build_artifacts/altair-split_1727892028500/work
-annotated-types @ file:///home/conda/feedstock_root/build_artifacts/annotated-types_1716290248287/work
-arrow @ file:///home/conda/feedstock_root/build_artifacts/arrow_1696128962909/work
-asttokens @ file:///home/conda/feedstock_root/build_artifacts/asttokens_1698341106958/work
-attrs @ file:///home/conda/feedstock_root/build_artifacts/attrs_1722977137225/work
+altair 
+annotated-types
+arrow 
+asttokens
+attrs
 beautifulsoup4==4.12.3
 blinker @ file:///home/conda/feedstock_root/build_artifacts/blinker_1715091184126/work
 Bottleneck @ file:///home/conda/feedstock_root/build_artifacts/bottleneck_1725351344336/work
