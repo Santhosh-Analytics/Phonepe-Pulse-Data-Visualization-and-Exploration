@@ -4,6 +4,7 @@ channels:
   - defaults
 dependencies:
   - _libgcc_mutex=0.1
+  - psycopg2
   - _openmp_mutex=4.5
   - alsa-lib=1.2.12
   - altair=5.4.1

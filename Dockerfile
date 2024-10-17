@@ -8,10 +8,10 @@ RUN conda install -n base -c conda-forge mamba
 WORKDIR /app
 
 # Copy the environment.yml file to the working directory
-COPY environment.yaml .
+COPY environment.yml .
 
 # Create the Conda environment using Mamba
-RUN mamba env create -f environment.yaml
+RUN mamba env create -f environment.yml
 
 # Activate the Conda environment and set the default environment to your new environment
 SHELL ["conda", "run", "-n", "pp", "/bin/bash", "-c"]
