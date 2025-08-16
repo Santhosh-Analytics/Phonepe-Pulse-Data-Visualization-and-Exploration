@@ -129,12 +129,12 @@ venv/
 ENV/
 env.bak/
 venv.bak/
-PP
-.PP
-.PP/
-PP/
-pp/
-
+phone_pe
+.phone_pe
+.phone_pe/
+phone_pe/
+phone_pe/
+/phone_pe
 # Spyder project settings
 .spyderproject
 .spyproject
